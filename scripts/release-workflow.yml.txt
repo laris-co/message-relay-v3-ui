@@ -1,0 +1,19 @@
+# A tag (v1.2.3) builds the UI and attaches dist.zip to its release. The relay add-on downloads it at
+# start: ui_version "latest" -> /releases/latest/download/dist.zip, "v1.2.3" -> that release.
+name: release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile && bun test && bun run build
+      - run: cd dist && zip -qr ../dist.zip .
+      - run: gh release create "$GITHUB_REF_NAME" dist.zip --title "$GITHUB_REF_NAME" --notes "UI build $GITHUB_REF_NAME. In the add-on: ui_version $GITHUB_REF_NAME (or latest), then restart."
+        env:
+          GH_TOKEN: ${{ github.token }}
