@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { openDashboard, pb } from "./pb.ts";
 import { sourceLabel } from "./chats.ts";
 import type { MessageRecord } from "./filter.ts";
@@ -67,6 +67,7 @@ export function Header({ nav, status }: { nav: ReactNode; status?: ReactNode }) 
     return () => ro.disconnect();
   }, []);
   return (
+    <>
     <header className="topbar" ref={ref}>
       {!EMBEDDED && (
         <span className="brand">
@@ -90,6 +91,43 @@ export function Header({ nav, status }: { nav: ReactNode; status?: ReactNode }) 
         )}
       </div>
     </header>
+    <UpdateBar />
+    </>
+  );
+}
+
+/** A newer UI release is out (the relay checks GitHub): say so, and let a superuser swap it in — no restart. */
+export function UpdateBar() {
+  const [s, setS] = useState<{ update: boolean; installed: string; latest: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    pb.send("/api/relay/ui", {}).then(setS).catch(() => {}); // an older relay has no such route: nothing to show
+  }, []);
+  if (!s?.update) return null;
+  const run = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      await pb.send("/api/relay/ui/update", { method: "POST" });
+      window.location.reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="update-bar" role="status">
+      <span>
+        A new UI is out: <b>{s.latest}</b> <span className="muted">(this one is {s.installed || "older"})</span>
+      </span>
+      {pb.authStore.isSuperuser ? (
+        <button className="btn small primary" disabled={busy} onClick={() => void run()}>{busy ? "Updating…" : "Update now"}</button>
+      ) : (
+        <span className="muted">An admin can update it.</span>
+      )}
+      {error && <span className="error">{error}</span>}
+    </div>
   );
 }
 

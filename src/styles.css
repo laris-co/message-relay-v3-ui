@@ -324,3 +324,8 @@ button.name:hover { text-decoration: underline dotted; text-underline-offset: 3p
 .landing-login { display: grid; gap: 10px; padding: 20px; max-width: 380px; }
 .landing-login input { height: 38px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--bg); font-family: var(--mono); }
 .landing-login button { height: 38px; border: 0; border-radius: 8px; background: var(--accent); color: var(--on-accent); font-weight: 600; }
+
+/* a newer UI release is out (UpdateBar) */
+.update-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 8px 24px; background: var(--accent-soft); border-bottom: 1px solid var(--accent-line); font-size: 13px; }
+.update-bar b { font-family: var(--mono); color: var(--accent-text); }
+@media (max-width: 900px) { .update-bar { padding: 8px 12px; } }
