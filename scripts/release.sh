@@ -8,7 +8,7 @@ V="${1:?usage: scripts/release.sh vX.Y.Z}"
 cd "$(dirname "$0")/.."
 bun install --frozen-lockfile >/dev/null
 bun test
-bun run build
+VITE_UI_VERSION="$V" bun run build
 rm -f dist.zip && (cd dist && zip -qr ../dist.zip .)
 git tag "$V" && git push -q origin "$V"
 gh release create "$V" dist.zip --title "$V" --notes "UI build $V. In the add-on: ui_version $V (or latest), then restart."
