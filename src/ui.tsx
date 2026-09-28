@@ -15,6 +15,9 @@ export const EMBEDDED = (() => {
 
 export type Page = "chats" | "stream" | "endpoints";
 
+/** The UI release this page is (release.sh stamps it into index.html); "dev" for a local build. */
+export const UI_VERSION = document.querySelector('meta[name="relay-ui-version"]')?.getAttribute("content") || "dev";
+
 /** One drawn icon set: 16 px, 1.75 stroke, currentColor. */
 const paths = {
   search: <><circle cx="7" cy="7" r="4.5" /><path d="m10.5 10.5 3 3" /></>,
@@ -70,7 +73,7 @@ export function Header({ nav, status }: { nav: ReactNode; status?: ReactNode }) 
     <>
     <header className="topbar" ref={ref}>
       {!EMBEDDED && (
-        <span className="brand">
+        <span className="brand" title={`UI ${UI_VERSION}`}>
           Message Relay <span>v3</span>
         </span>
       )}
