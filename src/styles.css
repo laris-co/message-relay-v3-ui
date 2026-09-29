@@ -329,3 +329,7 @@ button.name:hover { text-decoration: underline dotted; text-underline-offset: 3p
 .update-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 8px 24px; background: var(--accent-soft); border-bottom: 1px solid var(--accent-line); font-size: 13px; }
 .update-bar b { font-family: var(--mono); color: var(--accent-text); }
 @media (max-width: 900px) { .update-bar { padding: 8px 12px; } }
+
+.versions { font: 11px var(--mono); color: var(--muted); white-space: nowrap; }
+.update-bar .notes { flex-basis: 100%; font-size: 12px; color: var(--muted); }
+@media (max-width: 900px) { .versions { display: none; } }

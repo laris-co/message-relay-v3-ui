@@ -79,6 +79,7 @@ export function Header({ nav, status }: { nav: ReactNode; status?: ReactNode }) 
       )}
       {nav}
       <span className="spacer" />
+      <Versions />
       {status}
       <div className="actions">
         {pb.authStore.isSuperuser && (
@@ -138,7 +139,7 @@ export function UpdateBar() {
 /** The add-on itself has an update (Home Assistant Supervisor): show it; a superuser installs it from here.
  * The add-on restarts during the update, so this waits for the relay to answer again, then reloads. */
 export function AddonBar() {
-  const [s, setS] = useState<{ update: boolean; version: string; latest: string } | null>(null);
+  const [s, setS] = useState<{ update: boolean; version: string; latest: string; notes?: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
@@ -169,6 +170,7 @@ export function AddonBar() {
       <span>
         Add-on update: <b>{s.latest}</b> <span className="muted">(this one is {s.version})</span>
       </span>
+      {s.notes && <span className="notes">{s.notes.replace(/^- /gm, "").split("\n").join(" · ")}</span>}
       {pb.authStore.isSuperuser ? (
         <button className="btn small primary" disabled={busy} onClick={() => void run()}>{busy ? "Updating… (about a minute)" : "Update add-on"}</button>
       ) : (
@@ -176,6 +178,19 @@ export function AddonBar() {
       )}
       {error && <span className="error">{error}</span>}
     </div>
+  );
+}
+
+/** What runs: the UI release and the add-on version (inside Home Assistant). */
+function Versions() {
+  const [addon, setAddon] = useState("");
+  useEffect(() => {
+    pb.send<{ managed: boolean; version: string }>("/api/relay/addon", {}).then((a) => a.managed && setAddon(a.version)).catch(() => {});
+  }, []);
+  return (
+    <span className="versions" title="The running UI release and add-on version">
+      UI {UI_VERSION}{addon && <> · add-on {addon}</>}
+    </span>
   );
 }
 
