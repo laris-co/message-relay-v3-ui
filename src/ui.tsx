@@ -94,6 +94,7 @@ export function Header({ nav, status }: { nav: ReactNode; status?: ReactNode }) 
         )}
       </div>
     </header>
+    <AddonBar />
     <UpdateBar />
     </>
   );
@@ -126,6 +127,50 @@ export function UpdateBar() {
       </span>
       {pb.authStore.isSuperuser ? (
         <button className="btn small primary" disabled={busy} onClick={() => void run()}>{busy ? "Updating…" : "Update now"}</button>
+      ) : (
+        <span className="muted">An admin can update it.</span>
+      )}
+      {error && <span className="error">{error}</span>}
+    </div>
+  );
+}
+
+/** The add-on itself has an update (Home Assistant Supervisor): show it; a superuser installs it from here.
+ * The add-on restarts during the update, so this waits for the relay to answer again, then reloads. */
+export function AddonBar() {
+  const [s, setS] = useState<{ update: boolean; version: string; latest: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    pb.send("/api/relay/addon", {}).then(setS).catch(() => {});
+  }, []);
+  if (!s?.update) return null;
+  const run = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      await pb.send("/api/relay/addon/update", { method: "POST" }).catch(() => {}); // the restart may cut the answer
+      const start = Date.now();
+      await new Promise((r) => setTimeout(r, 8000));
+      while (Date.now() - start < 5 * 60_000) {
+        try {
+          const a = await pb.send<{ version: string }>("/api/relay/addon", {});
+          if (a.version === s.latest) return window.location.reload();
+        } catch { /* restarting */ }
+        await new Promise((r) => setTimeout(r, 4000));
+      }
+      setError("Still updating — check Settings → Add-ons in Home Assistant.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="update-bar" role="status">
+      <span>
+        Add-on update: <b>{s.latest}</b> <span className="muted">(this one is {s.version})</span>
+      </span>
+      {pb.authStore.isSuperuser ? (
+        <button className="btn small primary" disabled={busy} onClick={() => void run()}>{busy ? "Updating… (about a minute)" : "Update add-on"}</button>
       ) : (
         <span className="muted">An admin can update it.</span>
       )}
